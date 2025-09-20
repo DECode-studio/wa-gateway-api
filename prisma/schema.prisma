@@ -6,3 +6,15 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model WaSession {
+  id          String   @id @default(cuid())
+  sessionName String   @unique
+  deviceId    String?
+  status      String   @default("disconnected")
+  qrCode      String?
+  lastError   String?
+  authBackup  Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
