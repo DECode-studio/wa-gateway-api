@@ -1,9 +1,10 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import { Client, LocalAuth, MessageMedia } from 'whatsapp-web.js';
 import * as QRCode from 'qrcode';
 import { SendMessageDto } from 'src/model/request/whatsapp.dto';
-import { httpBadRequest } from 'src/model/response/http';
+import { dateDayTimeFullFormatter } from 'src/utils/formatter/date';
+import { delay, getRandomDelay } from 'src/utils/function/delay';
 
 @Injectable()
 export class WhatsappService {
@@ -30,7 +31,9 @@ export class WhatsappService {
             puppeteer: { headless: true },
         });
 
-        const qrPromise = new Promise<string>((resolve) => {
+        const qrPromise = new Promise<string>((
+            resolve, reject
+        ) => {
             client.on('qr', async (qr) => {
                 this.logger.debug(`QR RECEIVED for ${sessionName}`);
 
@@ -43,27 +46,29 @@ export class WhatsappService {
                 const qrImage = await QRCode.toDataURL(qr);
                 resolve(qrImage);
             });
+
+            client.on('ready', async () => {
+                this.logger.log(`Client ${sessionName} is ready`);
+                await this.prisma.waSession.update({
+                    where: { sessionName },
+                    data: { status: 'connected', qrCode: null },
+                });
+
+                reject(new Error(`client ${sessionName} is already connected`));
+            });
+
+            client.on('disconnected', async (reason) => {
+                this.logger.warn(`Client ${sessionName} disconnected: ${reason}`);
+                await this.prisma.waSession.update({
+                    where: { sessionName },
+                    data: { status: 'disconnected', lastError: reason },
+                });
+
+                this.sessions.delete(sessionName);
+                reject(new Error(`client ${sessionName} disconnected: ${reason}`));
+            });
         }).catch((e) => {
-            throw new Error(e?.response?.data?.message || 'bad request');
-        });
-
-        client.on('ready', async () => {
-            this.logger.log(`Client ${sessionName} is ready`);
-            await this.prisma.waSession.update({
-                where: { sessionName },
-                data: { status: 'connected', qrCode: null },
-            });
-
-            throw new Error(`client ${sessionName} is ready`);
-        });
-
-        client.on('disconnected', async (reason) => {
-            this.logger.warn(`Client ${sessionName} disconnected: ${reason}`);
-            await this.prisma.waSession.update({
-                where: { sessionName },
-                data: { status: 'disconnected', lastError: reason },
-            });
-            this.sessions.delete(sessionName);
+            throw new Error(e?.message || 'bad request');
         });
 
         await client.initialize();
@@ -124,4 +129,47 @@ export class WhatsappService {
 
         throw new Error('no message or media provided');
     }
+
+    async sendMass(
+        req: SendMessageDto
+    ) {
+        let {
+            sessionName,
+            to,
+            message,
+            mediaBase64,
+            mediaMimeType,
+            mediaFileName,
+            enableTimeNotes
+        } = req
+
+        for (const dest of to.split(',')) {
+            const now = new Date(Date.now())
+            const time = dateDayTimeFullFormatter(now)
+
+            message = (message ?? '').replace(/{{\s*name\s*}}/g, dest.split('|')[1] ?? '');
+            const msg = enableTimeNotes ? `${message}\n\nSENDED ON : ${time}` : message
+
+            try {
+                await this.send({
+                    sessionName,
+                    to: dest.split('|')[0],
+                    message: msg,
+                    mediaBase64,
+                    mediaMimeType,
+                    mediaFileName
+                })
+            } catch (error) {
+                console.log(`- error send mass message : ${error?.message ?? ''}`);
+            }
+
+            const randomDelay = getRandomDelay(30000, 90000);
+            await delay(randomDelay);
+
+            console.log(`Delay ${randomDelay / 1000} secon before send to ${dest}`);
+        }
+
+        console.log(`- finish send ${to.split(',').length} messages`);
+    }
 }
+

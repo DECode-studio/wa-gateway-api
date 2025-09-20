@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNotEmpty } from 'class-validator';
+import { IsString, IsOptional, IsNotEmpty, IsBoolean,  } from 'class-validator';
 
 export class SignDto {
     @IsString()
@@ -16,7 +16,7 @@ export class SendMessageDto {
 
     @IsString()
     @IsNotEmpty()
-    to: string; // e.g. "628123456789@c.us"
+    to: string; // e.g. "628123456789@c.us" // e.g. "628123456789|mugetsu, 628123456789|tormentor"
 
     @IsString()
     @IsOptional()
@@ -34,4 +34,8 @@ export class SendMessageDto {
     @IsString()
     @IsOptional()
     mediaFileName?: string; // optional, nama file
+
+    @IsBoolean()
+    @IsOptional()
+    enableTimeNotes?: boolean
 }

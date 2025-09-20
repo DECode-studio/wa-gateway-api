@@ -17,6 +17,34 @@ export class WhatsappController {
         private readonly wa: WhatsappService
     ) { }
 
+    @Get('session/:sessionName')
+    async session(
+        @Param('sessionName') sessionName: string
+    ) {
+        try {
+            const data = this.wa.getSession(sessionName);
+            return httpStatusOk(
+                'get session success',
+                data
+            )
+        } catch (error) {
+            return httpBadRequest(error?.message)
+        }
+    }
+
+    @Get('sessions')
+    async sessions() {
+        try {
+            const data = this.wa.listSessions();
+            return httpStatusOk(
+                'get list session success',
+                data
+            )
+        } catch (error) {
+            return httpBadRequest(error?.message)
+        }
+    }
+
     @Post('qr-sign-in')
     async qrSignIn(
         @Body() body: SignDto
@@ -28,9 +56,7 @@ export class WhatsappController {
                 data
             )
         } catch (error) {
-            return httpBadRequest(
-                error?.response?.data?.message
-            )
+            return httpBadRequest(error?.message)
         }
     }
 
@@ -45,32 +71,8 @@ export class WhatsappController {
                 data
             )
         } catch (error) {
-            return httpBadRequest(
-                error?.response?.data?.message
-            )
+            return httpBadRequest(error?.message)
         }
-    }
-
-    @Get('session/:sessionName')
-    async session(
-        @Param('sessionName') sessionName: string
-    ) {
-        try {
-            const data = this.wa.getSession(sessionName);
-            return httpStatusOk(
-                'get session success',
-                data
-            )
-        } catch (error) {
-            return httpBadRequest(
-                error?.response?.data?.message
-            )
-        }
-    }
-
-    @Get('sessions')
-    async sessions() {
-        return this.wa.listSessions();
     }
 
     @Post('send')
@@ -84,9 +86,19 @@ export class WhatsappController {
                 data
             )
         } catch (error) {
-            return httpBadRequest(
-                error?.response?.data?.message
-            )
+            return httpBadRequest(error?.message)
+        }
+    }
+
+    @Post('send-mass')
+    async sendMass(
+        @Body() dto: SendMessageDto
+    ) {
+        try {
+            this.wa.sendMass(dto);
+            return httpStatusOk('message is in progress')
+        } catch (error) {
+            return httpBadRequest(error?.message)
         }
     }
 }
