@@ -9,7 +9,7 @@ import { delay, getRandomDelay } from 'src/utils/function/delay';
 @Injectable()
 export class WhatsappService {
     private readonly logger = new Logger(WhatsappService.name);
-    private sessions: Map<string, Client> = new Map();
+    // private sessions: Map<string, Client> = new Map();
 
     constructor(private prisma: PrismaService) { }
 
@@ -22,9 +22,6 @@ export class WhatsappService {
     }
 
     async qrSignIn(sessionName: string) {
-        if (this.sessions.has(sessionName)) {
-            throw new Error(`session ${sessionName} already exists`);
-        }
 
         const client = new Client({
             authStrategy: new LocalAuth({ clientId: sessionName }),
@@ -64,7 +61,6 @@ export class WhatsappService {
                     data: { status: 'disconnected', lastError: reason },
                 });
 
-                this.sessions.delete(sessionName);
                 reject(new Error(`client ${sessionName} disconnected: ${reason}`));
             });
         }).catch((e) => {
@@ -72,20 +68,40 @@ export class WhatsappService {
         });
 
         await client.initialize();
-        this.sessions.set(sessionName, client);
-
         const qrCodeBase64 = await qrPromise;
+
         return {
             sessionName,
             qrCode: qrCodeBase64,
         };
     }
 
-    async signOut(sessionName: string) {
-        const client = this.sessions.get(sessionName);
+    async signOut(
+        sessionName: string
+    ) {
+        const session = await this.prisma.waSession.findFirst({
+            where: { sessionName }
+        });
+
+        if (!session) {
+            throw new Error(`session ${sessionName} not found`);
+        }
+
+        if (session.status == 'disconnected') {
+            throw new Error(`session ${sessionName} has disconnected`);
+        }
+
+        if (session.status == 'signed_out') {
+            throw new Error(`session ${sessionName} has signed out`);
+        }
+
+        const client = new Client({
+            authStrategy: new LocalAuth({ clientId: sessionName }),
+            puppeteer: { headless: true },
+        });
+
         if (client) {
             await client.destroy();
-            this.sessions.delete(sessionName);
             await this.prisma.waSession.update({
                 where: { sessionName },
                 data: { status: 'signed_out' },
@@ -109,12 +125,27 @@ export class WhatsappService {
             mediaFileName
         } = req
 
-        const client = this.sessions.get(sessionName);
-        if (!client) {
+        const session = await this.prisma.waSession.findFirst({
+            where: { sessionName }
+        });
+
+        if (!session) {
             throw new Error(`session ${sessionName} not found`);
         }
 
+        if (session.status == 'disconnected') {
+            throw new Error(`session ${sessionName} has disconnected`);
+        }
+
+        if (session.status == 'signed_out') {
+            throw new Error(`session ${sessionName} has signed out`);
+        }
+
         const chatId = to.includes('@c.us') ? to : `${to}@c.us`;
+        const client = new Client({
+            authStrategy: new LocalAuth({ clientId: sessionName }),
+            puppeteer: { headless: true },
+        });
 
         if (mediaBase64 && mediaMimeType) {
             const media = new MessageMedia(mediaMimeType, mediaBase64, mediaFileName || 'file');
