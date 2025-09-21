@@ -7,8 +7,10 @@ import {
     Post,
     Put,
     Get,
-    Param
+    Param,
+    UseGuards
 } from '@nestjs/common';
+import { AuthGuard } from 'src/middleware/auth.guard';
 
 @Controller('whatsapp')
 export class WhatsappController {
@@ -17,6 +19,7 @@ export class WhatsappController {
         private readonly wa: WhatsappService
     ) { }
 
+    @UseGuards(AuthGuard)
     @Get('session/:sessionName')
     async session(
         @Param('sessionName') sessionName: string
@@ -32,6 +35,7 @@ export class WhatsappController {
         }
     }
 
+    @UseGuards(AuthGuard)
     @Get('sessions')
     async sessions() {
         try {
@@ -45,6 +49,7 @@ export class WhatsappController {
         }
     }
 
+    @UseGuards(AuthGuard)
     @Post('qr-sign-in')
     async qrSignIn(
         @Body() body: SignDto
@@ -60,6 +65,7 @@ export class WhatsappController {
         }
     }
 
+    @UseGuards(AuthGuard)
     @Put('sign-out')
     async signOut(
         @Body() body: SignDto
@@ -75,6 +81,7 @@ export class WhatsappController {
         }
     }
 
+    @UseGuards(AuthGuard)
     @Post('send')
     async send(
         @Body() dto: SendMessageDto
@@ -90,6 +97,7 @@ export class WhatsappController {
         }
     }
 
+    @UseGuards(AuthGuard)
     @Post('send-mass')
     async sendMass(
         @Body() dto: SendMessageDto
