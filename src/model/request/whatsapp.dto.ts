@@ -1,41 +1,41 @@
-import { IsString, IsOptional, IsNotEmpty, IsBoolean,  } from 'class-validator';
+import { IsString, IsOptional, IsNotEmpty, IsBoolean } from 'class-validator';
 
 export class SignDto {
-    @IsString()
-    sessionName: string;
+  @IsString()
+  sessionName: string;
 
-    @IsOptional()
-    @IsString()
-    pairingCode?: string;
+  @IsOptional()
+  @IsString()
+  pairingCode?: string;
 }
 
 export class SendMessageDto {
-    @IsString()
-    @IsNotEmpty()
-    sessionName: string;
+  @IsString()
+  @IsNotEmpty()
+  sessionName: string;
 
-    @IsString()
-    @IsNotEmpty()
-    to: string; // e.g. "628123456789@c.us" // e.g. "628123456789|mugetsu, 628123456789|tormentor"
+  @IsString()
+  @IsNotEmpty()
+  to: string; // e.g. "628123456789@c.us" // e.g. "628123456789|mugetsu, 628123456789|tormentor"
 
-    @IsString()
-    @IsOptional()
-    message?: string;
+  @IsString()
+  @IsOptional()
+  message?: string;
 
-    // Base64 string atau URL ke media
-    @IsString()
-    @IsOptional()
-    mediaBase64?: string;
+  // Base64 string atau URL ke media
+  @IsString()
+  @IsOptional()
+  mediaBase64?: string;
 
-    @IsString()
-    @IsOptional()
-    mediaMimeType?: string; // "image/png", "video/mp4", "application/pdf"
+  @IsString()
+  @IsOptional()
+  mediaMimeType?: string; // "image/png", "video/mp4", "application/pdf"
 
-    @IsString()
-    @IsOptional()
-    mediaFileName?: string; // optional, nama file
+  @IsString()
+  @IsOptional()
+  mediaFileName?: string; // optional, nama file
 
-    @IsBoolean()
-    @IsOptional()
-    enableTimeNotes?: boolean
+  @IsBoolean()
+  @IsOptional()
+  enableTimeNotes?: boolean;
 }

@@ -5,11 +5,8 @@ import { WhatsappModule } from '../whatsapp/whatsapp.module';
 import { PrismaModule } from 'prisma/prisma.module';
 
 @Module({
-  imports: [
-    PrismaModule,
-    WhatsappModule,
-  ],
+  imports: [PrismaModule, WhatsappModule],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

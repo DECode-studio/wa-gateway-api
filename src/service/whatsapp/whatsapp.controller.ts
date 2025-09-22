@@ -25,7 +25,7 @@ export class WhatsappController {
         @Param('sessionName') sessionName: string
     ) {
         try {
-            const data = this.wa.getSession(sessionName);
+            const data = await this.wa.getSession(sessionName);
             return httpStatusOk(
                 'get session success',
                 data
@@ -39,9 +39,25 @@ export class WhatsappController {
     @Get('sessions')
     async sessions() {
         try {
-            const data = this.wa.listSessions();
+            const data = await this.wa.listSessions();
             return httpStatusOk(
                 'get list session success',
+                data
+            )
+        } catch (error) {
+            return httpBadRequest(error?.message)
+        }
+    }
+
+    @UseGuards(AuthGuard)
+    @Get('qr-connect/:sessionName')
+    async qrConnect(
+        @Param('sessionName') sessionName: string
+    ) {
+        try {
+            const data = await this.wa.qrConnect(sessionName);
+            return httpStatusOk(
+                'get qr connect success',
                 data
             )
         } catch (error) {

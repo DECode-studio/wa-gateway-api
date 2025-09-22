@@ -1,17 +1,14 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
 class MenuKitaProdSupabase {
-    supabaseUrl = process.env.SUPABASE_MENU_KITA_PROD_URL || ''
-    supabaseKey = process.env.SUPABASE_MENU_KITA_PROD_KEY || ''
+  supabaseUrl = process.env.SUPABASE_MENU_KITA_PROD_URL || '';
+  supabaseKey = process.env.SUPABASE_MENU_KITA_PROD_KEY || '';
 
-    supabase = createClient(
-        this.supabaseUrl,
-        this.supabaseKey
-    )
+  supabase = createClient(this.supabaseUrl, this.supabaseKey);
 
-    constructor() {
-        this.supabase
-    }
+  constructor() {
+    this.supabase;
+  }
 }
 
-export default new MenuKitaProdSupabase()
+export default new MenuKitaProdSupabase();

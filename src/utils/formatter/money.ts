@@ -1,17 +1,17 @@
-const idrMoney = new Intl.NumberFormat("id-ID", {
-  style: "decimal",
+const idrMoney = new Intl.NumberFormat('id-ID', {
+  style: 'decimal',
   maximumFractionDigits: 0,
 });
 
-const decMoney = new Intl.NumberFormat("en-US", {
-  style: "decimal",
+const decMoney = new Intl.NumberFormat('en-US', {
+  style: 'decimal',
   maximumFractionDigits: 0,
 });
 
-const idrMoneyCompact = new Intl.NumberFormat("id-ID", {
-  style: "currency",
-  currency: "IDR",
-  notation: "compact",
+const idrMoneyCompact = new Intl.NumberFormat('id-ID', {
+  style: 'currency',
+  currency: 'IDR',
+  notation: 'compact',
   maximumFractionDigits: 2,
 });
 
@@ -36,9 +36,6 @@ export const moneyFormatterIntl = (amount: number): string => {
   return idrMoneyCompact.format(amount);
 };
 
-export const customMoneyFormatter = (
-  amount: number,
-  currency: string = ''
-) => {
-  return `${Number(amount.toFixed(5)).toLocaleString("en-US")} ${currency}`
-}
+export const customMoneyFormatter = (amount: number, currency: string = '') => {
+  return `${Number(amount.toFixed(5)).toLocaleString('en-US')} ${currency}`;
+};
